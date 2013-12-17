@@ -124,15 +124,23 @@ module OpenShift
               Logger.new(STDERR).error { "Failed to apply logging configuration #{profile}: #{e.message}" }
             end
 
-            FileUtils.mkpath(File.dirname(log_file)) unless File.exist? File.dirname(log_file)
 
-            orig_umask = File.umask(0)
-            file = File.open(log_file, File::WRONLY | File::APPEND| File::CREAT, 0660)
+            log_dev = nil
+            orig_umask = File.umask(0117)
+
+            if log_file.chars.first == "|" then
+              log_dev=open(log_file,"w")
+            else
+              FileUtils.mkpath(File.dirname(log_file)) unless File.exist? File.dirname(log_file)
+
+              log_dev = File.open(log_file, File::WRONLY | File::APPEND| File::CREAT, 0660)
+              log_dev.sync = true
+            end
+
             File.umask(orig_umask)
 
-            file.sync = true
 
-            logger       = Logger.new(file, 5, 10 * 1024 * 1024)
+            logger       = Logger.new(log_dev, 5, 10 * 1024 * 1024)
             logger.level = log_level
 
             logger.formatter = proc do |severity, datetime, progname, msg|
