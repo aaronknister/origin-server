@@ -290,11 +290,6 @@ module OpenShift
 
               # Around 1/16 of the forked processes deadlock somewhere
               # if we don't close FDs and reinitialize logging.
-              ObjectSpace.each_object(IO) do |i|
-                next if i.closed?
-                next if [$stdin, $stdout, $stderr, writer].map { |f| f.fileno }.include?(i.fileno)
-                i.close
-              end
               NodeLogger.logger.reinitialize
 
               # Signal USR1 causes us to report a timeout error and detach

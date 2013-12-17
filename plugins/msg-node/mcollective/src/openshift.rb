@@ -48,6 +48,8 @@ module MCollective
         Log.instance.info(
             "#{@@cartridge_repository.count} cartridge(s) installed in #{@@cartridge_repository.path}")
 
+        OpenShift::Runtime::NodeLogger.logger.reinitialize
+
         begin
           if path = @@config.get('AGENT_EXTENSION')
             require path

@@ -59,7 +59,9 @@ module OpenShift
         end
 
         def reinitialize
+          if defined? @logger then close_logger(@logger) end
           @logger = build_logger(@profiles[:standard])
+          if defined? @trace_logger then close_logger(@trace_logger) end
           @trace_logger = build_logger(@profiles[:trace])
         end
 
@@ -89,6 +91,15 @@ module OpenShift
 
 
         private
+
+        def close_logger(open_logger)
+          begin
+            open_logger.close
+          rescue IOError => err
+            # Ignore if the stream has already been closed
+            raise err unless err.message == "closed stream"
+          end
+        end
 
         def build_logger(profile)
           begin
